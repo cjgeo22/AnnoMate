@@ -8,9 +8,10 @@ A Tkinter-based GUI tool to load images from an input directory, draw/erase colo
 ## CLI or EXE Versions
 
 **For running AnnoMate through the CLI, start at [Command Line Interface Instructions](#command-line-interface-instuctions).**
+
 **For packaging AnnoMate into a .EXE file using pyinstaller, start at [PyInstaller Packaging Instructions](#pyinstaller-packaging-instructions).**
 
-* # Command Line Interfact Instructions *
+# Command Line Interface Instructions
 
 ## Table of Contents
 
@@ -230,7 +231,7 @@ The GUI is built with Tkinter. Style constants and layout parameters live in `st
 
 ---
 
-*#PyInstaller .EXE Packaging Instructions*
+# PyInstaller .EXE Packaging Instructions
 
 ---
 
