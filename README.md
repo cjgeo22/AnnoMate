@@ -5,6 +5,12 @@
 A Tkinter-based GUI tool to load images from an input directory, draw/erase colored “masks” (for different defect categories), and export those masks (per category) to separate output folders. It also lets you save metadata (inspector name, tray/directory, notes, defects, pen labels) and export a CSV or Excel sheet summarizing all annotations.
 
 ---
+## CLI or EXE Versions
+
+**For running AnnoMate through the CLI, start at [Command Line Interface Instructions](#command-line-interface-instuctions).**
+**For packaging AnnoMate into a .EXE file using pyinstaller, start at [PyInstaller Packaging Instructions](#pyinstaller-packaging-instructions).**
+
+*#Command Line Interfact Instructions*
 
 ## Table of Contents
 
@@ -221,6 +227,10 @@ The GUI is built with Tkinter. Style constants and layout parameters live in `st
 2. The .XLSX or .CSV file is saved under your output directory based off the name of your input directory
 
 - ![Example of an exported .XLSX file from `metadata.json`](imgs/exported_XLXS_example.png)
+
+---
+
+*#PyInstaller .EXE Packaging Instructions*
 
 ---
 
