@@ -1646,8 +1646,6 @@ class MaskingTool:
         selected_defects: List[str] = [
             d for d, v in self.defect_vars.items() if v.get()
         ]
-        if not selected_defects:
-            selected_defects = ["good"]
         # Build a mapping from pen key to colour (RGB only)
         pen_to_color_rgb: Dict[str, Tuple[int, int, int]] = {
             k: v[:3] for k, v in PEN_COLORS.items()
