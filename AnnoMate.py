@@ -1765,10 +1765,11 @@ class MaskingTool:
         meta[key] = entry
         json.dump(meta, open(meta_path, "w"), indent=2)
         self.save_ts_var.set(disp_ts)
+        export_list = selected_defects or ["good"]
         messagebox.showinfo(
-            "Saved", f"Masks exported to: {', '.join(selected_defects)}"
+            "Saved", f"Masks exported to: {', '.join(export_list)}"
         )
-        logger.info(f"Masks exported to: {', '.join(selected_defects)}")
+        logger.info(f"Masks exported to: {', '.join(export_list)}")
 
     def _save_current(self) -> None:
         """
