@@ -1,273 +1,208 @@
-<!-- README.md -->
-
 # AnnoMate - The Anomaly Detection Masking Tool
 
 A Tkinter-based GUI tool to load images from an input directory, draw/erase colored “masks” (for different defect categories), and export those masks (per category) to separate output folders. It also lets you save metadata (inspector name, tray/directory, notes, defects, pen labels) and export a CSV or Excel sheet summarizing all annotations.
 
----
-## CLI or EXE Versions
-
-**For running AnnoMate through the CLI, start at [Command Line Interface Instructions](#command-line-interface-instuctions).**
-
-**For packaging AnnoMate into a .EXE file using pyinstaller, start at [PyInstaller Packaging Instructions](#pyinstaller-packaging-instructions).**
-
-# Command Line Interface Instructions
-
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Configuration](#configuration)
-5. [Usage](#usage)
-6. [File Structure](#file-structure)
-7. [Exported Outputs](#exported-outputs)
-8. [Troubleshooting](#troubleshooting)
-9. [Contact](#contact)
-
----
+- [Project Overview](#project-overview)
+- [Branch Variants](#branch-variants)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [File Structure](#file-structure)
+- [Exported Outputs](#exported-outputs)
+- [Running from VS Code or the command line](#running-from-vs-code-or-the-command-line)
+- [PyInstaller Packaging Instructions](#pyinstaller-packaging-instructions)
+- [Troubleshooting](#troubleshooting)
+- [Contact](#contact)
 
 ## Project Overview
 
-This tool (`draw_app.py`) lets an inspector:
+This tool lets an inspector:
 
 - Browse through a folder of images
 - Mark defects using up to five different “pens” (each pen corresponds to a specific color)
 - Optionally fill an entire region with a pen color (flood fill) or do freehand marks/erasing
-- Assign each pen to one of the defect categories (configurable via the JSON file `defects_config.json`)
+- Assign each pen to one of the defect categories via `defects_config.json`
 - Enter metadata per image (e.g., inspector name, tray/directory, free-form note)
 - Record which defect categories were selected for each image
-- Export:
-  - **Masks**: for each chosen defect, a separate mask image (PNG) saved to a category folder
-  - **Metadata JSON**: maintains per-image metadata (`metadata.json` in `output_dir`)
-  - **Excel sheet**: summarizes all images, indicating “Accept/Reject/Unlabeled” plus other columns
-  - **CSV file**: same information as the Excel sheet, for easier ingestion
 
-The GUI is built with Tkinter. Style constants and layout parameters live in `style_config.py`. The defect categories (and which pens map to which category) are defined in the JSON config file (`defects_config.json`).
+Exported Outputs include:
 
----
+- **Masks**: Separate PNG mask per defect category
+- **Metadata JSON**: `metadata.json` storing per-image metadata
+- **Excel Sheet**: Summarizes images with columns: Filename, Tray/Directory, Inspector, Accept/Reject, Defects, Notes
+- **CSV File**: Same content as Excel for easier ingestion
+
+In the full branches, additional features:
+
+- **Inference**: Classify images as Accept or Reject using a pretrained ResNet
+- **Grad-CAM**: Display heatmap overlay to visualize influential regions
+
+## Branch Variants
+
+| Branch                   | OS      | Script               | Purpose/Feature                     |
+|--------------------------|---------|----------------------|-------------------------------------|
+| `windows-full`           | Windows | `draw_app_both.py`   | Full tool (masking + inference)     |
+| `windows-masking-only`   | Windows | `draw_app.py`        | Masking only                        |
+| `mac-full`               | macOS   | `draw_app_both.py`   | Full tool (masking + inference)     |
+| `mac-masking-only`       | macOS   | `draw_app.py`        | Masking only                        |
 
 ## Prerequisites
 
-1. **Python 3.8+**
+- **Python 3.8+**
+  - Verify: `python3 --version`
+- **Tkinter**
+  - Included with standard Python installer on Windows/macOS
+  - On Debian/Ubuntu: `sudo apt-get install python3-tk`
+- **pip**
+  - Verify: `pip --version`
+- **Required Packages** (in `requirements.txt`):
+  - `Pillow`
+  - `openpyxl`
+  - Install with:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-   - Make sure you have Python 3 installed.
-   - To check:
-     ```bash
-     python3 --version
-     ```
-   - On Windows/macOS, your installer likely includes Tkinter. On many Linux distros, you may need to install the “tk” package separately (e.g. `sudo apt-get install python3-tk` on Debian/Ubuntu).
+### Optional Virtual Environment
 
-2. **pip**
-
-   - To install third-party packages.
-   - To check:
-     ```bash
-     pip --version
-     ```
-
-3. **Required Python packages** (listed in `requirements.txt`):
-
-   - **Pillow** (for image handling & drawing)
-   - **openpyxl** (for Excel export)
-
-   Install them via:
-
-   ```bash
-   pip install -r requirements.txt
-
-   ```
-
-4. **Optional VENV**
-
-- It is recommended to create a virtual environment
-- **Example:**
-  python3 -m venv venv
-  source venv/bin/activate # on macOS/Linux
-  venv\Scripts\activate.bat # on Windows
-  pip install -r requirements.txt
-
----
+```bash
+python3 -m venv venv
+# macOS/Linux
+source venv/bin/activate
+# Windows
+venv\Scripts\activate.bat
+pip install -r requirements.txt
+```
 
 ## Installation
 
-1. **Clone/Copy files onto your machine**
-
-- The minimum files needed are `draw_app.py`, `defects_config.json`, `style_config.py`, and `requirements.txt`
-
-2. **Install requirements**
-
-- If you havent, run the following:
-  pip install -r requirements.txt
-
----
+1. Clone or copy the repository.
+2. Ensure you have the appropriate script (`draw_app.py` or `draw_app_both.py`), `defects_config.json`, and `requirements.txt`.
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Configuration
 
-1. **Defects Configuration**
+The tool reads `defects_config.json` mapping dataset names to defect category lists:
 
-- The tool expects a JSON file (`defects_config.json`) that maps each “dataset name” to a list of defect categories. At runtime, you pass the --dataset argument to select which list to use. If the requested dataset key is not found, the "default" key is used.
-- You can add as many dataset keys as you like. Under each key, provide an array of strings (each string is a defect category). These category labels appear as checkboxes in the “Categories” panel of the GUI.
+```json
+{
+  "default": ["scratch", "dent", "crack", "..."]
+}
+```
 
----
+Each key maps to a dataset, and values are arrays of defect category strings displayed as checkboxes.
 
 ## Usage
 
-1. **Command to run program**
-   python draw_app.py \
-    --input_dir /path/to/your/images \
-    --output_dir /path/where/you/want/results \
-    --config defects_config.json \
-    --dataset default
+### Launching the Application
 
-- ![Example of command used in terminal to run the program](/imgs/command_example.png)
+```bash
+# Masking-only
+python draw_app.py
 
-- **--input_dir (required):** Path to a folder containing one or more images
-- **--output_dir (required):** Path to a folder where all masks, metadata, and exports will be saved. If it doesn’t exist, it will be created.
-- **--config (optional, default=defects_config.json):** Path to your JSON file with defect categories
-- **--dataset (optional, default=default):** Select which key in defects_config.json to use. Must match a top-level key in that JSON.
+# Full (masking + inference)
+python draw_app_both.py
+```
 
-2. **Once launched, the GUI window appears with two panels**
+### GUI Overview
 
-**Left panel/Canvas**:
+- **Left Panel (Canvas)**
+  - Display images and mask layers
+  - Draw with left-click, pan with right-click
+  - Zoom controls: `-` / `+`
+  - Draw/Erase toggle and pen fill mode
 
-- Shows the current image plus any “mask layers” you draw
-- Left-click + drag to draw a mark (with the currently selected pen/color)
-- Right-click + drag to pan around the zoomed image
-- “−” or “+” in the Zoom group to zoom out/in.
-- Draw/Erase buttons to switch between freehand draw and eraser
-- “PEN FILL MODE” checkbox; when enabled, clicking on the canvas flood-fills the current pen’s color into a contiguous region
-- Pen selection buttons (Use PEN1 … Use PEN5) to activate the corresponding pen color for drawing
-
-**Right panel/Controls**:
-
-1. Main controls:
-
-- Prev / Next to Navigate between images (automatically persists until application is closed unless clear was used)
-- Clear to clear everything (masks, metadata fields) for the current image
-- Undo / Redo to step backward/forward in the drawing history (mark-by-mark)
-- Draw / Erase to switch between freehand draw and eraser
-- Save to explicitly save current image’s mask and metadata
-
-2. Zoom controls:
-
-- “−” to zoom out (down to 10% min)
-- “+” to zoom in (up to 1000% max)
-
-3. Information controls:
-
-- Note for free-form text box about the image
-- Inspector; single-line text entry for whoever is using the tool
-- Tray/Directory; single-line text entry for whatever tray the image is on
-- Last saved; displays timestamp when last Save occurred (or “never”)
-
-4. Categories controls:
-
-- One checkbox per defect as defined by the chosen dataset in `defects_config.json`
-- If you check multiple defects, when exporting masks, each checked category will produce its own mask file containing only the pixels drawn in that pen’s color
-- If no defect is checked, the image is treated as “good”
-
-5. Fill controls:
-
-- “PEN FILL MODE” toggle; when enabled, clicking on the canvas flood-fills the current pen’s color into a contiguous region
-
-6. Pen controls:
-
-- For PEN1 through PEN5, you see a dropdown (Combobox) of all defect categories
-- Selecting a category here means “treat anything you drew/flood-filled with PEN1 color as that defect” when exporting
-- Clicking Use Pen switches your cursor to that pen color (and sets mode = draw, cursor becomes a pencil)
-
-7. Export Controls:
-
-- Export as XLSX to write an Excel file named <input_dir_basename>.xlsx into --output_dir.
-- Columns: Filename, Tray/Directory, Inspector, Accept/Reject, Defect(s), Notes.
-- **“Accept/Reject” logic:**
-  - If no metadata (tray, inspector, defects, notes) then it's “Unlabeled”.
-  - If no defects but some other metadata exists then it's “Accept”.
-  - If at least one defect is recorded then it's “Reject”.
-- Export as CSV is the same columns/logic saved as CSV named <input_dir_basename>.csv into --output_dir.
-
----
+- **Right Panel (Controls)**
+  - **Navigation**: Prev / Next, Clear, Undo / Redo, Save
+  - **Zoom**: `-` / `+`
+  - **Information**: Note, Inspector, Tray/Directory, Last saved
+  - **Categories**: Checkboxes for defects
+  - **Pen Controls**: Select pen (PEN1–PEN5) and assign defect category
+  - **Export**: 
+    - Export as XLSX: `<input_dir>.xlsx` in output directory
+    - Export as CSV: `<input_dir>.csv` in output directory
 
 ## File Structure
 
-1. **Input**
-
-- your_project_folder/your_input_directory/your_images
-- ![Example of what input folder structure should look like inside your project folder](imgs/input_structure_example.png)
-
-2. **Output**
-
-- Output folders are created automatically if not created based on the information passed in the --output_dir parameter
-- your_project_folder/your_output_directory/all exported materials
-- Typically after some testing, should look something like this:
-  - ![Example of what output folder structure should look like after using the tool](imgs/output_structure_example.png)
-
----
+```
+your_project_folder/
+├── draw_app.py or draw_app_both.py
+├── defects_config.json
+├── requirements.txt
+├── your_input_directory/
+│   ├── image1.png
+│   └── ...
+└── your_output_directory/
+    ├── masks/
+    ├── <defect_name>/
+    ├── metadata.json
+    └── <input_dir>.xlsx/.csv
+```
 
 ## Exported Outputs
 
-**When you click save on an image, the following happens:**
+On saving an image:
 
-1. A combined mask of all different pen marks on the image is saved under `<output_dir>/masks/<image_basename>_mask.png`
+1. **Combined Mask**: `<output_dir>/masks/<image_basename>_mask.png`
+2. **Per-Defect Masks**:
+   - `<output_dir>/<defect_name>/YYYYMMDD_HHMMSS_<inspector>_<image_basename>.png`
+3. **Metadata File**: `metadata.json` in output directory
+4. **Excel/CSV Export**: `<input_dir>.xlsx` and `<input_dir>.csv` in output directory
 
-- This is a transparent RGBA image matching the original resolution; it contains all marks/fills you applied (every pen color) merged over a transparent background
+## Running from VS Code or the command line
 
-2. For each defect category you checked (in “Categories”), a new image is generated
+1. Open the project folder in VS Code.
+2. (Optional) Create and activate a virtual environment.
+3. Open a new terminal.
+4. Run the appropriate script:
+   ```bash
+   python draw_app.py    # Masking-only
+   python draw_app_both.py  # Full (masking + inference)
+   ```
 
-- It scans each pixel of the combined mask; if that pixel’s color matches any pen color labeled for that defect, it paints that pixel onto a new RGB image (black background) and is saved under `<output_dir>/<defect_name>/YYYYMMDD_HHMMSS_<inspector>_<image_basename>.png`
+## PyInstaller Packaging Instructions
 
-3. If no defect is checked then the image is treated as “good” (no per-defect masks created, but it still counts as “Accept” in exports)
+1. **Install PyInstaller**:
+   ```bash
+   pip install pyinstaller
+   ```
+2. **Basic Build**:
+   ```bash
+   pyinstaller draw_app.py
+   ```
+3. **One-file GUI Build**:
+   ```bash
+   pyinstaller --onefile --windowed draw_app.py
+   ```
+4. **Include Data Files**:
+   ```bash
+   # Windows
+   pyinstaller --onefile --windowed --add-data "defects_config.json;." --name AnnoMateMask draw_app.py
 
-**When you click one of the export buttons, the following happens:**
-
-1. Information is taken from the `metadata.json` file is exported to a .XLSX file or a .CSV file
-
-- The `metadata.json` file is created automatically in your output directory to store information about the images to repopulate when the program is closed and reopened or flipping through images
-
-2. The .XLSX or .CSV file is saved under your output directory based off the name of your input directory
-
-- ![Example of an exported .XLSX file from `metadata.json`](imgs/exported_XLXS_example.png)
-
----
-
-# PyInstaller Packaging Instructions
-
----
+   # macOS/Linux
+   pyinstaller --onefile --windowed --add-data "defects_config.json:." --name AnnoMateMask draw_app.py
+   ```
+5. **Apple Silicon (optional)**:
+   ```bash
+   pyinstaller --onefile --windowed --target-arch universal2 --add-data "defects_config.json:." --name AnnoMateFull draw_app_both.py
+   ```
 
 ## Troubleshooting
 
-1. **No module named Tkinter:**
-
-- On many Linux distributions, you must install the OS package:
-  sudo apt-get update
-  sudo apt-get install python3-tk
-- On Windows/macOS, ensure you installed the full Python distribution (the “tkinter” extension should be bundled)
-
-2. **No module named PIL:**
-
-- Make sure you ran: pip install Pillow
-- If you are in a virtual environment, ensure it's activated
-
-3. **Openpyxl errors (“cannot import name ‘Workbook’"):**
-
-- Make sure you ran: pip install openpyxl
-- If you are in a virtual environment, ensure it's activated
-
-4. **JSON config errors:**
-
-- If defects_config.json is malformed JSON or missing a "default" key, the program will throw an error when loading; double-check your syntax
-
-5. **Permission errors when saving:**
-
-- Make sure --output_dir is a folder you have write access to; if it doesn’t exist, the program attempts to create it
-
----
+- **No module named Tkinter**: Install OS package: `sudo apt-get install python3-tk`
+- **No module named PIL**: `pip install Pillow`
+- **Openpyxl errors**: `pip install openpyxl`
+- **JSON config errors**: Validate `defects_config.json` syntax and ensure a `default` key exists
+- **Permission errors**: Choose an output directory with write access
 
 ## Contact
 
-1. **Github Issues:** https://github.com/cjgeo22/AD_masking_tool/issues
-
-2. **Email:** lgeorge@coastal.edu
-
-3. **Slack:** @CJ George
+- **GitHub Issues**: https://github.com/cjgeo22/AD_masking_tool/issues
+- **Email**: lgeorge@coastal.edu
+- **Slack**: @CJ George
