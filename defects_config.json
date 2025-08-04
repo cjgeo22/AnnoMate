@@ -1,0 +1,28 @@
+{
+    "carpet": [
+      "hole",
+      "metal contamination",
+      "thread",
+      "color",
+      "cut"
+    ],
+    "metal_nut": [
+      "bent",
+      "color",
+      "flip",
+      "scratch"
+    ],
+    "default": [
+      "defective",
+      "other"
+    ],
+    "bowtie": [
+      "chip",
+      "scratch",
+      "gouge",
+      "inclusion",
+      "void",
+      "other"
+    ]
+  }
+  
